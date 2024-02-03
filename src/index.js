@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import axios from "axios";
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native'
 import * as secureStorage from 'expo-secure-store'
 import * as splashScreen from 'expo-splash-screen'

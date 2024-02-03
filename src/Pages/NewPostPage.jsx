@@ -1,0 +1,202 @@
+import React, { Component } from 'react';
+import { View, Text, StyleSheet, TouchableWithoutFeedback, Image, ScrollView } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons'
+import * as imagePicker from 'expo-image-picker'
+import rootCss from '../rootCss';
+import PageLayout from '../Components/PageLayout';
+import AppTextInput from '../Components/AppTextInput';
+import AppButton from '../Components/AppButton';
+import { addData } from '../utilities/data'
+import { Modal } from 'react-native';
+import LottieView from 'lottie-react-native'
+
+
+class NewPostPage extends Component {
+  state = {
+    permission: null,
+    uri: [],
+    title: '',
+    subTitle: '',
+    author: '',
+    conditionBook: '',
+    description: '',
+    errors: {
+      uri: '',
+      title: '',
+      subTitle: '',
+      author: '',
+    conditionBook: '',
+      description: ''
+    },
+    animation: false
+  }
+
+  async handleImages() {
+    const permission = await imagePicker.getMediaLibraryPermissionsAsync().catch(reject => console.log('Get permission', reject))
+    this.setState({ permission: permission.granted })
+
+    const selectImages = async () => {
+      const images = await imagePicker.launchImageLibraryAsync().catch(reject => console.log(reject))
+      const updatedUri = this.state.uri
+      updatedUri.unshift(images.assets[0].uri)
+      this.setState({ uri: updatedUri })
+    }
+
+    if (this.state.permission) {
+      selectImages()
+    }
+    else {
+      const permission = await imagePicker.requestMediaLibraryPermissionsAsync().catch(reject => console.log('Request permission', reject))
+      this.setState({ permission: permission.granted })
+      selectImages()
+    }
+  }
+
+  handleValidation() {
+    let updatedErrors = {}
+
+    if (this.state.uri.length === 0) {
+      updatedErrors.uri = "Please select 1 image"
+      this.setState({ errors: updatedErrors })
+    }
+    if (this.state.title.length === 0) {
+      updatedErrors.title = 'Title cannot be empty'
+      this.setState({ errors: updatedErrors })
+    }
+    if (this.state.subTitle.length === 0) {
+      updatedErrors.subTitle = 'ISBN cannot be empty'
+      this.setState({ errors: updatedErrors })
+    }
+    if (this.state.author.length === 0) {
+      updatedErrors.author = 'Author cannot be empty'
+      this.setState({ errors: updatedErrors })
+    }
+    if (this.state.conditionBook.length === 0) {
+      updatedErrors.conditionBook = 'Select Book\'s condition'
+      this.setState({ errors: updatedErrors })
+    }
+    if (this.state.description.length === 0) {
+      updatedErrors.description = 'Description cannot be empty'
+      this.setState({ errors: updatedErrors })
+    }
+    if (Object.keys(updatedErrors).length === 0) {
+      return true
+    }
+  }
+
+  handleSubmit() {
+    if (this.handleValidation()) {
+      addData(this.state)
+      this.setState({ animation: true })
+    }
+  }
+
+  handleAnimation() {
+    this.props.navigation.navigate('home')
+    const initialState = state = {
+      permission: null,
+      uri: [],
+      title: '',
+      subTitle: '',
+      author: '',
+    conditionBook: '',
+      description: '',
+      errors: {
+        uri: '',
+        title: '',
+        subTitle: '',
+        author: '',
+    conditionBook: '',
+        description: ''
+      },
+      animation: false
+    }
+    this.setState(initialState)
+  }
+
+  render() {
+    return (
+      <PageLayout>
+        <View style={styles.container}>
+          <Text style={styles.title}>New Post</Text>
+          <View style={styles.imagesContainer}>
+            <ScrollView horizontal>
+              <TouchableWithoutFeedback onPress={() => this.handleImages()}>
+                <View style={styles.eachImage}>
+                  <MaterialCommunityIcons name='camera' size={40} color={rootCss.mediumGrey} />
+                </View>
+              </TouchableWithoutFeedback>
+              {this.state.uri.map(item => (
+                <View style={styles.eachImage} key={item}>
+                  <Image source={{ uri: item, width: 100, height: 100 }} />
+                </View>
+              ))}
+            </ScrollView>
+            {this.state.errors.uri && <Text style={styles.errors}>{this.state.errors.uri}</Text>}
+          </View>
+          <AppTextInput icon='lead-pencil' placeholder='Title' onChangeText={(value) => this.setState({ title: value })} value={this.state.title} />
+          {this.state.errors.title && <Text style={styles.errors}>{this.state.errors.title}</Text>}
+          <AppTextInput icon='currency-rupee' placeholder='ISBN' keyboardType='numeric' onChangeText={(value) => this.setState({ subTitle: value })} value={this.state.subTitle} />
+          {this.state.errors.subTitle && <Text style={styles.errors}>{this.state.errors.subTitle}</Text>}
+          <AppTextInput icon='currency-rupee' placeholder='Author' keyboardType='numeric' onChangeText={(value) => this.setState({ subTitle: value })} value={this.state.subTitle} />
+          {this.state.errors.author && <Text style={styles.errors}>{this.state.errors.author}</Text>}
+          <AppTextInput icon='currency-rupee' placeholder='Condition of Book' keyboardType='numeric' onChangeText={(value) => this.setState({ subTitle: value })} value={this.state.subTitle} />
+          {this.state.errors.subTitle && <Text style={styles.errors}>{this.state.errors.subTitle}</Text>}
+          <AppTextInput icon='newspaper-variant-outline' placeholder='Description' multiline={true} onChangeText={(value) => this.setState({ description: value })} value={this.state.description} />
+          {this.state.errors.description && <Text style={styles.errors}>{this.state.errors.description}</Text>}
+          <AppButton onPress={() => this.handleSubmit()}>Post</AppButton>
+          <Text onPress={() => this.props.navigation.navigate('listingsPage')} style={styles.cancel}>Cancel</Text>
+        </View>
+        <Modal visible={this.state.animation}>
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <LottieView
+              style={{ width: 150, height: 150 }}
+              onAnimationFinish={() => this.handleAnimation()}
+              autoPlay
+              loop={false}
+              source={require('../assets/animations/done.json')}
+            />
+          </View>
+        </Modal>
+      </PageLayout>
+    );
+  }
+}
+
+const styles = StyleSheet.create({
+  container: {
+    paddingHorizontal: 10
+  },
+  imagesContainer: {
+    marginBottom: 10
+  },
+  eachImage: {
+    backgroundColor: rootCss.white,
+    height: 100,
+    width: 100,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+    overflow: 'hidden'
+  },
+  errors: {
+    textAlign: 'center',
+    fontSize: 20,
+    fontWeight: '400',
+    color: rootCss.error
+  },
+  title: {
+    fontSize: 25,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 10
+  },
+  cancel: {
+    fontSize: 18,
+    textAlign: 'center',
+  }
+})
+
+
+export default NewPostPage;

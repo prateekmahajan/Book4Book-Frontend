@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import axios from "axios";
 import { Image, StyleSheet, Text, View, Dimensions, Platform } from 'react-native';
 import * as secureStorage from 'expo-secure-store'
 import { email, password } from '../utilities/regex'
@@ -21,11 +22,18 @@ class LoginPage extends Component {
         const isValidPassword = password.test(this.state.password)
 
         if (isValidEmail && isValidPassword) {
-            // Calling backend and storing the token in secure storage and logging in
+            console.log('called');
+            axios.post(process.env.EXPO_PUBLIC_DEFAULT_API + '/auth/login', { email: this.state.email, password: this.state.password })
+                .then(resolve => {
+                    console.log('resolve', resolve.data);
+                })
+                .catch(reject => {
+                    console.log('reject', reject);
+                })
 
             const token = 'Token From the backend'
-            await secureStorage.setItemAsync('authToken', token)
-            this.props.onLogin()
+            // await secureStorage.setItemAsync('authToken', token)
+            // this.props.onLogin()
             console.log(await secureStorage.getItemAsync('authToken'));
         }
         else this.setState({ errors: 'Email or Password is incorrect' })
@@ -88,8 +96,8 @@ const styles = StyleSheet.create({
     registerContainer: {
         position: 'absolute',
         width: '100%',
-        bottom:Platform.OS == 'ios'?0:null,
-        top: Platform.OS == 'android'?Dimensions.get('window').height - 120:null ,
+        bottom: Platform.OS == 'ios' ? 0 : null,
+        top: Platform.OS == 'android' ? Dimensions.get('window').height - 120 : null,
         padding: 10,
     }
 })

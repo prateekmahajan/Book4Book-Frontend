@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import axios from "axios";
 import { View, Text, StyleSheet, Image, Dimensions, Platform } from 'react-native';
 import * as secureStorage from 'expo-secure-store'
 import { email, password } from '../utilities/regex'
@@ -28,12 +29,16 @@ class RegistrationPage extends Component {
     const isValidConfirmPassword = this.state.password === this.state.confirmPassword
 
     if (isValidEmail && isValidPassword && isValidConfirmPassword) {
-      // Calling backend and storing the token in secure storage and logging in
-
-      const token = 'Token From the backend'
-      await secureStorage.setItemAsync('authToken', token)
-      this.props.onLogin()
-      console.log(await secureStorage.getItemAsync('authToken'));
+      axios.post(process.env.EXPO_PUBLIC_DEFAULT_API + '/auth/signup', { email: this.state.email, password: this.state.confirmPassword })
+        .then(async (resolve) => {
+          console.log('resolve', resolve.data);
+          const token = resolve.data
+          await secureStorage.setItemAsync('authToken', token)
+          this.props.onLogin(token)
+        })
+        .catch(reject => {
+          console.log('Error @ registration page', reject);
+        })
     }
     else {
       let updatedErrors = this.state.errors
